@@ -18,6 +18,15 @@ app.use(session({
   cookie: {}
 }))
 
+const tryCatch = (controller) => (req, res, next) => {
+  try {
+    controller(req, res, next);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
 const tasks = [
   {
     id: 1,
@@ -44,121 +53,169 @@ const tasks = [
 
 let currentId = 4; // Setze die ID auf den nächsten verfügbaren Wert
 
-app.get("/tasks", (request, response) => {
-  if (request.session.token !== adminCredentials.token){
-    request.session.token = "This cookie is invalid"
-    return response.status(403).json("UNAUTHORIZED")
+app.get("/tasks", tryCatch((request, response, next) => {
+  try {
+    if (request.session.token !== adminCredentials.token){
+      request.session.token = "This cookie is invalid"
+      return response.status(403).json("UNAUTHORIZED")
+    }
+    console.log(tasks)
+    response.status(200).json(tasks);
+  } catch (error) {
+    next(error);
   }
-  response.status(200).json(tasks);
-});
+}));
 
-app.post("/tasks", (request, response) => {
-  if (request.session.token !== adminCredentials.token){
-    request.session.token = "This cookie is invalid"
-    return response.status(403).json("UNAUTHORIZED")
+
+app.post("/tasks", tryCatch((request, response, next) => {
+  try {
+    if (request.session.token !== adminCredentials.token){
+      request.session.token = "This cookie is invalid"
+      return response.status(403).json("UNAUTHORIZED")
+    }
+    const newTask = request.body;
+
+    if (!newTask.title || newTask.title.trim() === "") {
+      return response.status(406).json({ error: "Title cannot be empty" });
+    }
+
+    if (!newTask.title || !newTask.description || newTask.done == undefined || !newTask.dueDate) {
+      return response.status(400).send("Bad Request");
+    }
+
+    newTask.id = currentId;
+    tasks.push(newTask);
+    currentId++;
+
+    response.status(201).json(newTask);
+    console.log(newTask);
+  } catch (error) {
+    next(error);
   }
-  const newTask = request.body;
+}));
+;
 
-  if (!newTask.title || newTask.title.trim() === "") {
-    return response.status(406).json({ error: "Title cannot be empty" });
+app.get("/tasks/:id", tryCatch((request, response, next) => {
+  try {
+    if (request.session.token !== adminCredentials.token){
+      request.session.token = "This cookie is invalid"
+      return response.status(403).json("UNAUTHORIZED")
+    }
+    const id = request.params.id
+    const task = tasks.find(b=>b.id==id)
+    if (!task){
+      response.status(404).send("Couldn't find a task with this Id")
+    }
+    response.status(200).json(task)
+    console.log(task)
+  } catch (error) {
+    next(error);
   }
+}));
 
-  if (!newTask.title || !newTask.description || newTask.done == undefined || !newTask.dueDate) {
-    return response.status(400).send("Bad Request");
+app.put("/tasks/:id", tryCatch((request, response, next) => {
+  try {
+    if (request.session.token !== adminCredentials.token){
+      request.session.token = "This cookie is invalid"
+      return response.status(403).json("UNAUTHORIZED")
+    }
+    const id = request.params.id;
+    const updateTask = request.body;
+    const task = tasks.find(b=>b.id==id)
+
+    if (!updateTask.title || updateTask.title.trim() === "") {
+      return response.status(406).json({ error: "Title cannot be empty" });
+    }
+
+    if (!updateTask.id || !updateTask.title || !updateTask.description || updateTask.done == undefined || !updateTask.dueDate) {
+      return response.status(400).send("Bad Request");
+    }
+
+    if (!task){
+      response.status(404).send("Couldn't find a book with this Id")
+    }
+
+    tasks[task] = updateTask;
+    response.status(200).json(updateTask)
+    console.log(updateTask)
+  } catch (error) {
+    next(error);
   }
+}));
 
-  newTask.id = currentId;
-  tasks.push(newTask);
-  currentId++;
+app.delete("/tasks/:id", tryCatch((request, response, next) => {
+  try {
+    if (request.session.token !== adminCredentials.token){
+      request.session.token = "This cookie is invalid"
+      return response.status(403).json("UNAUTHORIZED")
+    }
+    const removeTask = request.params.id
+    const task = tasks.find(b=>b.id==removeTask)
+    const indexToRemove = tasks.indexOf(removeTask)
 
-  response.status(201).json(newTask);
-  console.log(tasks);
-});
+    if (!task){
+      return response.status(404).send("Couldn't find a Task with this Id")
+    }
 
-app.get("/tasks/:id", (request, response)=>{
-  if (request.session.token !== adminCredentials.token){
-    request.session.token = "This cookie is invalid"
-    return response.status(403).json("UNAUTHORIZED")
+    tasks.splice(indexToRemove, 1);
+    response.status(200).send(task)
+
+    console.log(tasks)
+  } catch (error) {
+    next(error);
   }
-  const id = request.params.id
-  const task = tasks.find(b=>b.id==id)
-  if (!task){
-    response.status(404).send("Couldn't find a task with this Id")
-  }
-  response.status(200).json(task)
-})
-
-app.put("/tasks/:id", (request, response)=>{
-  if (request.session.token !== adminCredentials.token){
-    request.session.token = "This cookie is invalid"
-    return response.status(403).json("UNAUTHORIZED")
-  }
-  const id = request.params.id;
-  const updateTask = request.body;
-  const task = tasks.find(b=>b.id==id)
-
-  if (!updateTask.title || updateTask.title.trim() === "") {
-    return response.status(406).json({ error: "Title cannot be empty" });
-  }
-
-  if (!updateTask.id || !updateTask.title || !updateTask.description || updateTask.done == undefined || !updateTask.dueDate) {
-    return response.status(400).send("Bad Request");
-  }
-
-  if (!task){
-    response.status(404).send("Couldn't  find a book with this Id")
-  }
-
-  tasks[task] = updateTask;
-  response.status(200).json(updateTask)
-  console.log(updateTask)
-})
-
-app.delete("/tasks/:id", (request, response)=>{
-  if (request.session.token !== adminCredentials.token){
-    request.session.token = "This cookie is invalid"
-    return response.status(403).json("UNAUTHORIZED")
-  }
-  const removeTask = request.params.id
-  const task = tasks.find(b=>b.id==removeTask)
-  const indexToRemove = tasks.indexOf(removeTask)
-
-  if (!task){
-     return response.status(404).send("Couldn't find a Task with this Id")
-  }
-
-  tasks.splice(indexToRemove, 1);
-  response.status(200).send(task)
-
-  console.log(tasks)
-})
+}));
 
 const adminCredentials = {password:"m295", token: "supersecrettoken"}
 
-app.post("/login", (request, response)=>{
-  const {email, password, token} = request.body;
+app.post("/login", tryCatch((request, response, next) => {
+  try {
+    const {email, password, token} = request.body;
 
-  if (email && password === adminCredentials.password && token === adminCredentials.token){
-    request.session.token = token
+    if (email && password === adminCredentials.password && token === adminCredentials.token){
+      request.session.token = token
 
-    return response.status(200).json({message: "You are now logged in"})
+      return response.status(200).json({message: "You are now logged in"})
+    }
+    return response.status(401).json({error: "Not logged in."})
+    console.log(request.body)
+  } catch (error) {
+    next(error);
   }
-  return response.status(401).json({error: "Not logged in."})
-})
+}));
 
-app.get("/verify", (request, response)=>{
-  if (request.session.token){
-    return response.status(200).json({token: request.session.token})
+app.get("/verify", tryCatch((request, response, next) => {
+  try {
+    if (request.session.token){
+      return response.status(200).json({token: request.session.token})
+    }
+    request.session.token = "This cookie is invalid"
+    return response.status(401).json({error: "Not logged in"})
+  } catch (error) {
+    next(error);
   }
-  request.session.token = "This cookie is invalid"
-  return response.status(401).json({error: "Not logged in"})
-})
+}));
 
 
-app.delete("/logout", (request, response)=>{
-  request.session.token = "This cookie is invalid"
-  response.status(204).send()
-})
+app.delete("/logout", tryCatch((request, response, next) => {
+  try {
+    request.session.token = "This cookie is invalid"
+    response.status(204).send()
+    console.log(request.session.token)
+  } catch (error) {
+    next(error);
+  }
+}));
+
+app.use((req, res, next) => {       // Send user code 404 if page isn't found
+  res.status(404).json({"404": "route not found"});
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Internal Server Error");
+});
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

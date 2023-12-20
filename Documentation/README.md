@@ -17,7 +17,7 @@ Diese Anwendung ist ein einfacher Task-Manager mit REST-API-Endpunkten. Benutzer
 
 ## Setup
 1. Installiere Node.js und npm von [https://nodejs.org/](https://nodejs.org/).
-2. Clone dieses Repository: `git clone [Repository-URL]`.
+2. Clone dieses Repository: `git clone` https://github.com/bbwIsmael/M295LB-B.git.
 3. Navigiere in das Projektverzeichnis: `cd [Projektverzeichnis]`.
 4. Installiere die Abhängigkeiten: `npm install`.
 5. Starte die Anwendung: `npm start`.
@@ -64,4 +64,5 @@ Ausloggen und Invalidieren des Authentifizierungstokens. Erfordert Administrator
 
 ## Hinweis
 Stelle sicher, dass du berechtigt bist, bevor du auf die API-Endpunkte zugreifst. Die Authentifizierung erfolgt über das Token-System.
+Weiterer Hinweis, beim Löschen eine Task muss man die Abfrage das erste mal jeweils zwei mal machen damit es funktioniert, da wir bei der ersten Abfrage alle Tasks zurückgeben.
 
