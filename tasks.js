@@ -1,12 +1,15 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const {request, response} = require("express");
-const session = require("express-session")
 const app = express();
+const {request, response} = require("express");
 const port = 3000;
+const session = require("express-session")
 app.use(bodyParser.json());
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json');
 
+app.use('/swagger-gui', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(session({
   secret: "elsecreto",
@@ -72,7 +75,7 @@ app.post("/tasks", (request, response) => {
   console.log(tasks);
 });
 
-app.get("/task/:id", (request, response)=>{
+app.get("/tasks/:id", (request, response)=>{
   if (request.session.token !== adminCredentials.token){
     request.session.token = "This cookie is invalid"
     return response.status(403).json("UNAUTHORIZED")
@@ -85,7 +88,7 @@ app.get("/task/:id", (request, response)=>{
   response.status(200).json(task)
 })
 
-app.put("/task/:id", (request, response)=>{
+app.put("/tasks/:id", (request, response)=>{
   if (request.session.token !== adminCredentials.token){
     request.session.token = "This cookie is invalid"
     return response.status(403).json("UNAUTHORIZED")
@@ -111,7 +114,7 @@ app.put("/task/:id", (request, response)=>{
   console.log(updateTask)
 })
 
-app.delete("/task/:id", (request, response)=>{
+app.delete("/tasks/:id", (request, response)=>{
   if (request.session.token !== adminCredentials.token){
     request.session.token = "This cookie is invalid"
     return response.status(403).json("UNAUTHORIZED")
