@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "date": "^2.0.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.5.43",
+    "nodejs": "^0.0.0",
+    "request": "^2.88.2",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui": "^5.10.5",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "name": "M295LB-B",
+  "version": "1.0.0",
+  "main": "tasks.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "swagger": "node ./swagger.js"
+  },
+  "private": true,
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
